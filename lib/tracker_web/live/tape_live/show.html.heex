@@ -1,0 +1,27 @@
+<.header>
+  Tape <%= @tape.id %>
+  <:subtitle>This is a tape record from your database.</:subtitle>
+  <:actions>
+    <.link patch={~p"/tapes/#{@tape}/show/edit"} phx-click={JS.push_focus()}>
+      <.button>Edit tape</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Name"><%= @tape.name %></:item>
+  <:item title="State"><%= @tape.state %></:item>
+</.list>
+
+<.back navigate={~p"/tapes"}>Back to tapes</.back>
+
+<.modal :if={@live_action == :edit} id="tape-modal" show on_cancel={JS.patch(~p"/tapes/#{@tape}")}>
+  <.live_component
+    module={TrackerWeb.TapeLive.FormComponent}
+    id={@tape.id}
+    title={@page_title}
+    action={@live_action}
+    tape={@tape}
+    patch={~p"/tapes/#{@tape}"}
+  />
+</.modal>

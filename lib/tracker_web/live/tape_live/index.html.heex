@@ -1,0 +1,42 @@
+<.header>
+  Listing Tapes
+  <:actions>
+    <.link patch={~p"/tapes/new"}>
+      <.button>New Tape</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table
+  id="tapes"
+  rows={@streams.tapes}
+  row_click={fn {_id, tape} -> JS.navigate(~p"/tapes/#{tape}") end}
+>
+  <:col :let={{_id, tape}} label="Name"><%= tape.name %></:col>
+  <:col :let={{_id, tape}} label="State"><%= tape.state %></:col>
+  <:action :let={{_id, tape}}>
+    <div class="sr-only">
+      <.link navigate={~p"/tapes/#{tape}"}>Show</.link>
+    </div>
+    <.link patch={~p"/tapes/#{tape}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={{id, tape}}>
+    <.link
+      phx-click={JS.push("delete", value: %{id: tape.id}) |> hide("##{id}")}
+      data-confirm="Are you sure?"
+    >
+      Delete
+    </.link>
+  </:action>
+</.table>
+
+<.modal :if={@live_action in [:new, :edit]} id="tape-modal" show on_cancel={JS.patch(~p"/tapes")}>
+  <.live_component
+    module={TrackerWeb.TapeLive.FormComponent}
+    id={@tape.id || :new}
+    title={@page_title}
+    action={@live_action}
+    tape={@tape}
+    patch={~p"/tapes"}
+  />
+</.modal>
