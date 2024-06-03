@@ -21,11 +21,12 @@ defmodule Tracker.TapesTest do
     end
 
     test "create_tape/1 with valid data creates a tape" do
-      valid_attrs = %{name: "some name", state: "some state"}
+      new_state = Ecto.Enum.values(Tape, :state) |> List.first()
+      valid_attrs = %{name: "some name", state: to_string(new_state)}
 
       assert {:ok, %Tape{} = tape} = Tapes.create_tape(valid_attrs)
       assert tape.name == "some name"
-      assert tape.state == "some state"
+      assert tape.state == new_state
     end
 
     test "create_tape/1 with invalid data returns error changeset" do
@@ -34,11 +35,12 @@ defmodule Tracker.TapesTest do
 
     test "update_tape/2 with valid data updates the tape" do
       tape = tape_fixture()
-      update_attrs = %{name: "some updated name", state: "some updated state"}
+      new_state = Ecto.Enum.values(Tape, :state) |> List.last()
+      update_attrs = %{name: "some updated name", state: to_string(new_state)}
 
       assert {:ok, %Tape{} = tape} = Tapes.update_tape(tape, update_attrs)
       assert tape.name == "some updated name"
-      assert tape.state == "some updated state"
+      assert tape.state == new_state
     end
 
     test "update_tape/2 with invalid data returns error changeset" do

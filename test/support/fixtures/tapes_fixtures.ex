@@ -12,7 +12,7 @@ defmodule Tracker.TapesFixtures do
       attrs
       |> Enum.into(%{
         name: "some name",
-        state: "some state"
+        state: Ecto.Enum.values(Tracker.Tapes.Tape, :state) |> List.first()
       })
       |> Tracker.Tapes.create_tape()
 

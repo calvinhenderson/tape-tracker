@@ -1,17 +1,26 @@
 defmodule TrackerWeb.TapeLiveTest do
+  alias Tracker.TapesFixtures
   use TrackerWeb.ConnCase
 
   import Phoenix.LiveViewTest
   import Tracker.TapesFixtures
 
-  @create_attrs %{name: "some name", state: "some state"}
-  @update_attrs %{name: "some updated name", state: "some updated state"}
-  @invalid_attrs %{name: nil, state: nil}
+  @create_attrs %{
+    name: "some name",
+    state: Ecto.Enum.values(Tracker.Tapes.Tape, :state) |> List.first()
+  }
+  @update_attrs %{
+    name: "some updated name",
+    state: Ecto.Enum.values(Tracker.Tapes.Tape, :state) |> List.last()
+  }
+  @invalid_attrs %{name: nil, state: @create_attrs[:state]}
 
   defp create_tape(_) do
     tape = tape_fixture()
     %{tape: tape}
   end
+
+  setup :register_and_log_in_user
 
   describe "Index" do
     setup [:create_tape]

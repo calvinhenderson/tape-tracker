@@ -86,6 +86,7 @@ defmodule TrackerWeb do
       # Core UI components and translation
       import TrackerWeb.CoreComponents
       import TrackerWeb.Gettext
+      import TrackerWeb.EnumHelpers
 
       # Shortcut for generating JS commands
       alias Phoenix.LiveView.JS

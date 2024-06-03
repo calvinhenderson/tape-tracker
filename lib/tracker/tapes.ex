@@ -101,4 +101,33 @@ defmodule Tracker.Tapes do
   def change_tape(%Tape{} = tape, attrs \\ %{}) do
     Tape.changeset(tape, attrs)
   end
+
+  @doc """
+  Installs a tape. Any currently installed tapes will be checked in.
+
+  ## Examples
+
+      iex> install_tape(tape)
+      {:ok, %Tape{state: :installed}}
+  """
+  def install_tape(tape) do
+    Ecto.Multi.new()
+    |> Ecto.Multi.update_all(:check_in, Tape.installed_query(), set: [state: :in_storage])
+    |> Ecto.Multi.update(:install, Tape.installed(tape))
+    |> Repo.transaction()
+  end
+
+  @doc """
+  Checks a tape in.
+
+  ## Examples
+
+      iex> check_in_tape(tape)
+      {:ok, %Tape{state: :in_storage}}
+  """
+  def check_in_tape(tape) do
+    tape
+    |> Tape.in_storage()
+    |> Repo.update()
+  end
 end

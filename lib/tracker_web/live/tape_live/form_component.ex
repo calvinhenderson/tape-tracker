@@ -20,7 +20,12 @@ defmodule TrackerWeb.TapeLive.FormComponent do
         phx-submit="save"
       >
         <.input field={@form[:name]} type="text" label="Name" />
-        <.input field={@form[:state]} type="text" label="State" />
+        <.input
+          field={@form[:state]}
+          type="select"
+          label="State"
+          options={translate_select_enums(Tracker.Tapes.Tape, :state)}
+        />
         <:actions>
           <.button phx-disable-with="Saving...">Save Tape</.button>
         </:actions>
