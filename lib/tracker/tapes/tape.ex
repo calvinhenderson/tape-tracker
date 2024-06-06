@@ -44,7 +44,7 @@ defmodule Tracker.Tapes.Tape do
   @doc """
   Returns a query for all installed tapes.
   """
-  def installed_query(query \\ Tape) do
+  def installed_query(query \\ __MODULE__) do
     from t in query,
       where: t.state == :installed,
       select: t

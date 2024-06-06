@@ -20,6 +20,18 @@ defmodule TrackerWeb.Router do
   scope "/", TrackerWeb do
     pipe_through :browser
 
+    live "/", DashboardLive.Index, :index
+  end
+
+  scope "/", TrackerWeb do
+    pipe_through [:browser, :require_authenticated_user]
+
+    live "/tapes", TapeLive.Index, :index
+    live "/tapes/new", TapeLive.Index, :new
+    live "/tapes/:id/edit", TapeLive.Index, :edit
+
+    live "/tapes/:id", TapeLive.Show, :show
+    live "/tapes/:id/show/edit", TapeLive.Show, :edit
   end
 
   # Other scopes may use custom stacks.

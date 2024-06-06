@@ -1,0 +1,67 @@
+<div class="grid gap-8 grid-cols-1 md:grid-cols-3 lg:grid-cols-4 md:gap-12">
+  <div class="flex flex-col gap-12 md:col-span-2 lg:col-span-3">
+    <.header>Installed Tapes</.header>
+
+    <div
+      id="installed-tapes"
+      class="flex overflow-x-scroll overflow-y-visible"
+      phx-update="stream"
+    >
+      <.tape_card
+        :for={{id, tape} <- @streams.tapes}
+        :if={tape.state == :installed}
+        id={id}
+        tape={tape}
+      >
+        <:actions>
+          <.link class="btn btn-ghost" navigate={~p"/tapes/#{tape.id}"}>Edit</.link>
+          <button
+            class="btn btn-primary"
+            phx-click="check-in"
+            data-confirm={gettext("Are you sure? Normally, you should install another tape.")}
+            phx-value-id={tape.id}
+          >
+            Check In
+          </button>
+        </:actions>
+      </.tape_card>
+    </div>
+
+    <.header>Ready Tapes</.header>
+
+    <div
+      id="ready-tapes"
+      class="flex gap-4 p-4 overflow-x-scroll overflow-y-visible"
+      phx-update="stream"
+    >
+      <.tape_card
+        :for={{id, tape} <- @streams.tapes}
+        :if={tape.state == :in_storage}
+        id={id}
+        tape={tape}
+      >
+        <:actions>
+          <.link class="btn btn-ghost" navigate={~p"/tapes/#{tape.id}"}>Edit</.link>
+          <button class="btn btn-primary" phx-click="install" phx-value-id={tape.id}>
+            Install
+          </button>
+        </:actions>
+      </.tape_card>
+    </div>
+
+    <.link navigate={~p"/tapes"} class="btn">View all tapes</.link>
+  </div>
+
+  <div class="min-w-fit max-w-fit">
+    <ul class="timeline timeline-vertical timeline-compact">
+      <li :for={{id, tape} <- @streams.tapes} class="group">
+        <hr class="group-first:hidden" />
+        <.icon name="hero-information-circle" class="timeline-middle" />
+        <div class="timeline-end w-full">
+          <.tape_card id={"event-" <> id} tape={tape} compact />
+        </div>
+        <hr class="group-last:hidden" />
+      </li>
+    </ul>
+  </div>
+</div>
