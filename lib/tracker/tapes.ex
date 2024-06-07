@@ -112,22 +112,43 @@ defmodule Tracker.Tapes do
   """
   def install_tape(tape) do
     Ecto.Multi.new()
-    |> Ecto.Multi.update_all(:check_in, Tape.installed_query(), set: [state: :in_storage])
-    |> Ecto.Multi.update(:install, Tape.installed(tape))
+    |> Ecto.Multi.update_all(:check_in, Tape.installed_query(), set: [state: :stored])
+    |> Ecto.Multi.update(:install, Tape.install(tape))
     |> Repo.transaction()
   end
 
   @doc """
-  Checks a tape in.
+  Sets a tape's state to :stored.
 
   ## Examples
 
-      iex> check_in_tape(tape)
-      {:ok, %Tape{state: :in_storage}}
+      iex> store_tape(tape)
+      {:ok, %Tape{state: :stored}}
   """
-  def check_in_tape(tape) do
+  def store_tape(tape) do
     tape
-    |> Tape.in_storage()
+    |> Tape.store()
     |> Repo.update()
+  end
+
+  @doc """
+  Lists timeline events for tape state changes.
+  """
+  def list_state_events_query(tape_id \\ :all) do
+    StateEvent.query_for_tape(tape_id)
+  end
+
+  def limit_page_query(query, opts) do
+    page_limit = Keyword.get(opts, :limit, nil)
+    page_offset = Keyword.get(opts, :page, 0) * Keyword.get(opts, :limit, 25)
+
+    from query,
+      limit: ^page_limit,
+      offset: ^page_offset
+  end
+
+  def get_all(%Ecto.Query{} = query) do
+    query
+    |> Repo.all()
   end
 end

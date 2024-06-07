@@ -3,13 +3,13 @@ defmodule Tracker.Tapes.Tape do
   import Ecto.Changeset
   import Ecto.Query
 
-  @valid_states ~w(in_storage installed broken retired)a
+  alias Tracker.Tapes
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
   schema "tapes" do
     field :name, :string
-    field :state, Ecto.Enum, values: @valid_states
+    field :state, Ecto.Enum, values: [:installed, :stored, :retired, :broken]
 
     timestamps(type: :utc_datetime)
   end
@@ -19,23 +19,21 @@ defmodule Tracker.Tapes.Tape do
     tape
     |> cast(attrs, [:name, :state])
     |> validate_required([:name, :state])
-    |> validate_inclusion(:state, @valid_states)
   end
 
   @doc """
-  Changes the state of a tape to `:in_storage`
+  Changes the state of a tape to `:stored`
   """
-  def in_storage(tape) do
+  def store(tape) do
     tape
     |> changeset(%{})
-    |> validate_inclusion(:state, ~w(installed broken retired)a)
-    |> put_change(:state, :in_storage)
+    |> put_change(:state, :stored)
   end
 
   @doc """
   Changes the state of a tape to `:installed`
   """
-  def installed(tape) do
+  def install(tape) do
     tape
     |> changeset(%{})
     |> put_change(:state, :installed)

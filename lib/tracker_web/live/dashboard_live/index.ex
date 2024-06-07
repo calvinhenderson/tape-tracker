@@ -16,9 +16,9 @@ defmodule TrackerWeb.DashboardLive.Index do
   end
 
   @impl true
-  def handle_event("check-in", %{"id" => tape_id}, socket) do
+  def handle_event("store-tape", %{"id" => tape_id}, socket) do
     Tapes.get_tape!(tape_id)
-    |> Tapes.check_in_tape()
+    |> Tapes.store_tape()
     |> case do
       {:ok, tape} ->
         {:noreply, put_flash(socket, :info, gettext("Checking in ") <> tape.name)}
@@ -29,7 +29,7 @@ defmodule TrackerWeb.DashboardLive.Index do
   end
 
   @impl true
-  def handle_event("install", %{"id" => tape_id}, socket) do
+  def handle_event("install-tape", %{"id" => tape_id}, socket) do
     Tapes.get_tape!(tape_id)
     |> Tapes.install_tape()
     |> case do
