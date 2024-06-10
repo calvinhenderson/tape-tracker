@@ -20,27 +20,107 @@ defmodule TrackerWeb.TapeLive.TapeComponents do
   """
   attr :tape, Tracker.Tapes.Tape, required: true
   attr :compact, :boolean, default: false
+  attr :is_link, :boolean, default: true
   slot :actions, required: false
   attr :rest, :global
 
   def tape_card(assigns) do
     ~H"""
-    <div class={["card w-auto bg-base-100 shadow-xl"]} {@rest}>
-      <figure :if={!@compact}>
-        <img src="/images/cassette.png" class="max-w-48 md:max-w-64" alt="Casset Tape" />
-      </figure>
-      <div class="card-body">
-        <h1 class="card-title flex flex-wrap text-2xl">
-          <span><%= @tape.name %></span>
-          <span class={["badge ml-auto", @tape.state in [:installed] && "badge-ghost"]}>
-            <%= translate_enum(@tape.state) %>
-          </span>
-        </h1>
-        <div :if={@actions} class="card-actions justify-end">
-          <%= render_slot(@actions) %>
+    <div
+      class={[
+        "card lg:card-side min-w-60 max-w-xs lg:max-w-xl w-auto bg-base-100 shadow-xl group hover:scale-105"
+      ]}
+      {@rest}
+    >
+      <.link navigate={@is_link && ~p"/tapes/#{@tape.id}"}>
+        <figure :if={!@compact}>
+          <img
+            src="/images/cassette.png"
+            class={[
+              "object-cover group-hover:grayscale-0 transition-all duration-500",
+              not Tracker.Tapes.installed?(@tape) && "grayscale"
+            ]}
+            alt="Casset Tape"
+          />
+        </figure>
+        <div class="card-body">
+          <h1 class="card-title flex flex-wrap text-2xl">
+            <span class="mr-auto"><%= @tape.name %></span>
+            <.state_badge state={@tape.state} />
+          </h1>
+          <div :if={@actions} class="card-actions justify-end">
+            <%= render_slot(@actions) %>
+          </div>
+          <p class="text-sm">
+            Last installed:
+            <span
+              id={@tape.id <> "-last_installed_at"}
+              phx-hook="FormatTimestamp"
+              data-timestamp={@tape.last_installed_at}
+            >
+              Never
+            </span>
+          </p>
         </div>
-      </div>
+      </.link>
     </div>
+    """
+  end
+
+  attr :state, :atom, values: [:installed, :stored, :retired, :broken], required: true
+
+  def state_badge(assigns) do
+    ~H"""
+    <span class={[
+      "badge badge-sm",
+      @state in [:installed] && "badge-warning",
+      @state in [:stored] && "badge-ghost",
+      @state in [:retired] && "badge-outline",
+      @state in [:broken] && "badge-error"
+    ]}>
+      <%= translate_enum(@state) %>
+    </span>
+    """
+  end
+
+  attr :events, :list, default: []
+  attr :id, :string, required: true
+
+  def tape_timeline(assigns) do
+    ~H"""
+    <ul id={@id} phx-update="stream" class="timeline timeline-vertical">
+      <%= for {id, event} <- @events do %>
+        <li id={id} class="group">
+          <hr class="group-first:hidden" />
+          <p
+            id={id <> "-timestamp"}
+            data-timestamp={event.inserted_at}
+            phx-hook="FormatTimestamp"
+            class="group-odd:timeline-start timeline-end"
+          >
+            <%= event.inserted_at %>
+          </p>
+          <.icon name="hero-information-circle" class="timeline-middle mb-8" />
+          <.icon
+            name="hero-arrow-long-up"
+            class="scale-[2.5] timeline-middle -mb-10 text-base-300 group-last:hidden"
+          />
+          <div class="group-odd:timeline-end timeline-start timeline-box w-full min-w-56">
+            <.link navigate={~p"/tapes/#{event.tape.id}"}>
+              <div class="grid grid-cols-1">
+                <.header>Tape <%= event.tape.name %></.header>
+                <p>
+                  <.state_badge state={event.old_state} />
+                  <.icon name="hero-arrow-right" />
+                  <.state_badge state={event.new_state} />
+                </p>
+              </div>
+            </.link>
+          </div>
+          <hr class="group-last:hidden" />
+        </li>
+      <% end %>
+    </ul>
     """
   end
 end

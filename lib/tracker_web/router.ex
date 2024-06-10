@@ -24,14 +24,20 @@ defmodule TrackerWeb.Router do
   end
 
   scope "/", TrackerWeb do
-    pipe_through [:browser, :require_authenticated_user]
+    pipe_through [:browser]
 
     live "/tapes", TapeLive.Index, :index
-    live "/tapes/new", TapeLive.Index, :new
-    live "/tapes/:id/edit", TapeLive.Index, :edit
-
     live "/tapes/:id", TapeLive.Show, :show
-    live "/tapes/:id/show/edit", TapeLive.Show, :edit
+  end
+
+  scope "/", TrackerWeb do
+    pipe_through [:browser, :require_authenticated_user]
+
+    live_session :authenticated, on_mount: [:require_authenticated_user] do
+      live "/tapes/new", TapeLive.Index, :new
+      live "/tapes/:id/edit", TapeLive.Index, :edit
+      live "/tapes/:id/show/edit", TapeLive.Show, :edit
+    end
   end
 
   # Other scopes may use custom stacks.

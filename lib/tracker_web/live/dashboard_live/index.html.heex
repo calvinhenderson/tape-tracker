@@ -1,27 +1,23 @@
-<div class="grid gap-8 grid-cols-1 md:grid-cols-3 lg:grid-cols-4 md:gap-12">
-  <div class="flex flex-col gap-12 md:col-span-2 lg:col-span-3">
+<div class="grid gap-8 grid-cols-1 lg:grid-cols-2">
+  <div class="flex flex-col gap-12">
     <.header>Installed Tapes</.header>
 
-    <div
-      id="installed-tapes"
-      class="flex overflow-x-scroll overflow-y-visible"
-      phx-update="stream"
-    >
+    <div id="installed-tapes" class="flex gap-4 p-4 md:p-8 overflow-x-scroll" phx-update="stream">
       <.tape_card
-        :for={{id, tape} <- @streams.tapes}
-        :if={tape.state == :installed}
+        :for={{id, tape} <- @streams.installed_tapes}
+        :if={Tracker.Tapes.installed?(tape)}
         id={id}
         tape={tape}
       >
         <:actions>
-          <.link class="btn btn-ghost" navigate={~p"/tapes/#{tape.id}"}>Edit</.link>
+          <.link class="btn btn-ghost" navigate={~p"/tapes/#{tape.id}/show/edit"}>Edit</.link>
           <button
             class="btn btn-primary"
             phx-click="store-tape"
             data-confirm={gettext("Are you sure? Normally, you should install another tape.")}
             phx-value-id={tape.id}
           >
-            Check In
+            Store
           </button>
         </:actions>
       </.tape_card>
@@ -31,37 +27,55 @@
 
     <div
       id="ready-tapes"
-      class="flex gap-4 p-4 overflow-x-scroll overflow-y-visible"
+      class="flex flex-col gap-4 p-4 md:p-8 overflow-x-scroll"
       phx-update="stream"
     >
       <.tape_card
-        :for={{id, tape} <- @streams.tapes}
-        :if={tape.state != :installed}
+        :for={{id, tape} <- @streams.stored_tapes}
+        :if={Tracker.Tapes.stored?(tape)}
         id={id}
         tape={tape}
       >
         <:actions>
-          <.link class="btn btn-ghost" navigate={~p"/tapes/#{tape.id}"}>Edit</.link>
+          <.link class="btn btn-ghost" navigate={~p"/tapes/#{tape.id}/show/edit"}>Edit</.link>
           <button class="btn btn-primary" phx-click="install-tape" phx-value-id={tape.id}>
             Install
           </button>
         </:actions>
       </.tape_card>
     </div>
-
-    <.link navigate={~p"/tapes"} class="btn">View all tapes</.link>
   </div>
 
-  <div class="min-w-fit max-w-fit">
-    <ul class="timeline timeline-vertical timeline-compact">
-      <li :for={{id, tape} <- @streams.tapes} class="group">
-        <hr class="group-first:hidden" />
-        <.icon name="hero-information-circle" class="timeline-middle" />
-        <div class="timeline-end w-full">
-          <.tape_card id={"event-" <> id} tape={tape} compact />
-        </div>
-        <hr class="group-last:hidden" />
-      </li>
-    </ul>
+  <div class="min-w-fit max-w-fit mx-auto">
+    <.header>Timeline Events</.header>
+    <.tape_timeline id="timeline" events={@streams.events} />
   </div>
 </div>
+
+<.modal
+  :if={not is_nil(@form)}
+  show={true}
+  id="authentication-modal"
+  title="Authentication required"
+>
+  <.form for={@form}>
+    <label
+      for={@form[:badge_id].id}
+      class="focus:ring-2 ring-base-300 border-2 rounded-box border-dashed border-base-300 p-8 grid grid-cols-2 items-center"
+    >
+      <img src="/images/scanner.png" alt="ID card being scanned" class="w-80" />
+      <p class="font-bold text-4xl text-center">Scan your badge to continue</p>
+      <input
+        id={@form[:badge_id].id}
+        name={@form[:badge_id].name}
+        value={@form[:badge_id].value}
+        class="opacity-0 focus"
+      />
+    </label>
+    <div class="hidden">
+      <.input field={@form[:action]} />
+      <.input field={@form[:params]} />
+    </div>
+    <button type="submit" class="sr-only">Submit</button>
+  </.form>
+</.modal>

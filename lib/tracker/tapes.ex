@@ -6,7 +6,7 @@ defmodule Tracker.Tapes do
   import Ecto.Query, warn: false
   alias Tracker.Repo
 
-  alias Tracker.Tapes.Tape
+  alias Tracker.Tapes.{Tape, StateEvent}
 
   @doc """
   Returns the list of tapes.
@@ -18,7 +18,11 @@ defmodule Tracker.Tapes do
 
   """
   def list_tapes do
-    Repo.all(Tape)
+    from(t in Tape,
+      order_by: [desc: t.updated_at],
+      select: t
+    )
+    |> Repo.all()
   end
 
   @doc """
@@ -117,6 +121,9 @@ defmodule Tracker.Tapes do
     |> Repo.transaction()
   end
 
+  def installed?(%{state: state}), do: state in [:installed]
+  def stored?(%{state: state}), do: state in [:stored]
+
   @doc """
   Sets a tape's state to :stored.
 
@@ -129,6 +136,22 @@ defmodule Tracker.Tapes do
     tape
     |> Tape.store()
     |> Repo.update()
+  end
+
+  def subscribe_to_state, do: Tracker.Repo.Listener.subscribe()
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking StateEvent changes.
+  """
+  def change_tape_state_event(event, attrs) do
+    event
+    |> StateEvent.changeset(attrs)
+  end
+
+  def list_state_events(tape_id \\ :all) do
+    tape_id
+    |> list_state_events_query()
+    |> Repo.all()
   end
 
   @doc """

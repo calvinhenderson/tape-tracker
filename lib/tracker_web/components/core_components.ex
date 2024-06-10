@@ -37,6 +37,7 @@ defmodule TrackerWeb.CoreComponents do
 
   """
   attr :id, :string, required: true
+  attr :title, :string
   attr :show, :boolean, default: false
   attr :on_cancel, JS, default: %JS{}
   slot :inner_block, required: true
@@ -68,6 +69,12 @@ defmodule TrackerWeb.CoreComponents do
               phx-click-away={JS.exec("data-cancel", to: "##{@id}")}
               class="shadow-zinc-700/10 ring-zinc-700/10 relative hidden rounded-2xl bg-white p-14 shadow-lg ring-1 transition"
             >
+              <div
+                :if={not is_nil(@title)}
+                class="absolute top-6 left-5 font-bold text-neutral-400 text-sm"
+              >
+                <%= @title %>
+              </div>
               <div class="absolute top-6 right-5">
                 <button
                   phx-click={JS.exec("data-cancel", to: "##{@id}")}

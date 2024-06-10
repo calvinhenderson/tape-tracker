@@ -17,7 +17,10 @@ defmodule Tracker.Application do
       # Start a worker by calling: Tracker.Worker.start_link(arg)
       # {Tracker.Worker, arg},
       # Start to serve requests, typically the last entry
-      TrackerWeb.Endpoint
+      TrackerWeb.Endpoint,
+
+      # Start the database event listener
+      Tracker.Repo.Listener
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

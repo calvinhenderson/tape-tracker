@@ -10,6 +10,7 @@ defmodule Tracker.Tapes.Tape do
   schema "tapes" do
     field :name, :string
     field :state, Ecto.Enum, values: [:installed, :stored, :retired, :broken]
+    field :last_installed_at, :utc_datetime
 
     timestamps(type: :utc_datetime)
   end
@@ -17,8 +18,14 @@ defmodule Tracker.Tapes.Tape do
   @doc false
   def changeset(tape, attrs) do
     tape
-    |> cast(attrs, [:name, :state])
+    |> cast(attrs, [:name, :state, :last_installed_at])
     |> validate_required([:name, :state])
+  end
+
+  @doc false
+  def event_changeset(tape, attrs) do
+    tape
+    |> cast(attrs, [:id, :name, :state, :inserted_at, :updated_at, :last_installed_at])
   end
 
   @doc """
@@ -37,6 +44,7 @@ defmodule Tracker.Tapes.Tape do
     tape
     |> changeset(%{})
     |> put_change(:state, :installed)
+    |> put_change(:last_installed_at, DateTime.utc_now() |> DateTime.truncate(:second))
   end
 
   @doc """
