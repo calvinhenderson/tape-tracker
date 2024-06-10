@@ -6,6 +6,7 @@ defmodule Tracker.Repo.Migrations.CreateTapes do
       add :id, :binary_id, primary_key: true
       add :name, :string
       add :state, :string
+      add :last_installed_at, :utc_datetime
 
       timestamps(type: :utc_datetime)
     end

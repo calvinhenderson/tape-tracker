@@ -9,3 +9,12 @@
 #
 # We recommend using the bang functions (`insert!`, `update!`
 # and so on) as they will fail if something goes wrong.
+
+1..10
+|> Enum.reduce([], fn i, acc ->
+  {:ok, tape} = Tracker.Tapes.create_tape(%{name: to_string(i), state: :stored})
+  [tape | acc]
+end)
+|> Enum.reverse()
+|> List.first()
+|> Tracker.Tapes.install_tape()
