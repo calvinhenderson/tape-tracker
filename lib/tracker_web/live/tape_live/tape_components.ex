@@ -28,7 +28,7 @@ defmodule TrackerWeb.TapeLive.TapeComponents do
     ~H"""
     <div
       class={[
-        "card lg:card-side min-w-60 max-w-xs lg:max-w-xl w-auto bg-base-100 shadow-xl group hover:scale-105"
+        "card card-side min-w-60 max-w-xl w-auto bg-base-100 shadow-xl group hover:scale-105"
       ]}
       {@rest}
     >
@@ -37,7 +37,7 @@ defmodule TrackerWeb.TapeLive.TapeComponents do
           <img
             src="/images/cassette.png"
             class={[
-              "object-cover group-hover:grayscale-0 transition-all duration-500",
+              "w-80 group-hover:grayscale-0 transition-all duration-500",
               not Tracker.Tapes.installed?(@tape) && "grayscale"
             ]}
             alt="Casset Tape"
@@ -96,7 +96,7 @@ defmodule TrackerWeb.TapeLive.TapeComponents do
             id={id <> "-timestamp"}
             data-timestamp={event.inserted_at}
             phx-hook="FormatTimestamp"
-            class="group-odd:timeline-start timeline-end"
+            class="group-even:timeline-end timeline-start timeline-box min-w-max"
           >
             <%= event.inserted_at %>
           </p>
@@ -105,7 +105,7 @@ defmodule TrackerWeb.TapeLive.TapeComponents do
             name="hero-arrow-long-up"
             class="scale-[2.5] timeline-middle -mb-10 text-base-300 group-last:hidden"
           />
-          <div class="group-odd:timeline-end timeline-start timeline-box w-full min-w-56">
+          <div class="group-even:timeline-start timeline-end timeline-box w-full min-w-56">
             <.link navigate={~p"/tapes/#{event.tape.id}"}>
               <div class="grid grid-cols-1">
                 <.header>Tape <%= event.tape.name %></.header>

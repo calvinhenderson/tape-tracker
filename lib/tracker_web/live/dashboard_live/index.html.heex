@@ -1,4 +1,4 @@
-<div class="grid gap-8 grid-cols-1 lg:grid-cols-2">
+<div class="grid gap-8 grid-cols-1 xl:grid-cols-[max-content,max-content]">
   <div class="flex flex-col gap-12">
     <.header>Installed Tapes</.header>
 
@@ -58,7 +58,7 @@
   id="authentication-modal"
   title="Authentication required"
 >
-  <.form for={@form}>
+  <.form for={@form} phx-submit="authenticate">
     <label
       for={@form[:badge_id].id}
       class="focus:ring-2 ring-base-300 border-2 rounded-box border-dashed border-base-300 p-8 grid grid-cols-2 items-center"

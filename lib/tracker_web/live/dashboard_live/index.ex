@@ -1,4 +1,6 @@
 defmodule TrackerWeb.DashboardLive.Index do
+  alias Tracker.Accounts.User
+  alias Tracker.Accounts
   use TrackerWeb, :live_view
 
   import TrackerWeb.TapeLive.TapeComponents
@@ -33,19 +35,42 @@ defmodule TrackerWeb.DashboardLive.Index do
   end
 
   @impl true
+  def handle_event("authenticate", %{"badge_id" => badge_id} = params, socket) do
+    case Accounts.get_user_by_badge(badge_id) do
+      %User{} = user ->
+        Process.put(:current_user, user)
+
+        {:noreply,
+         socket
+         |> assign(:form, nil)
+         |> process_event(params["action"], params["params"] |> Jason.decode!())}
+
+      nil ->
+        {:noreply,
+         socket
+         |> put_flash(
+           :error,
+           "Badge number not found. Did you associate it in your account settings?"
+         )
+         |> assign_form(Map.put(params, "badge_id", ""))}
+    end
+  end
+
+  @impl true
   def handle_event(event, params, socket) do
     socket =
-      if is_nil(socket.assigns[:current_user]) do
+      if is_nil(socket.assigns.current_user) do
         socket
-        |> assign_form()
+        |> assign_form(%{"action" => event, "params" => params |> Jason.encode!()})
       else
         socket
+        |> process_event(event, params)
       end
 
     {:noreply, socket}
   end
 
-  def store_tape(%{"id" => tape_id}, socket) do
+  def process_event(socket, "store-tape", %{"id" => tape_id}) do
     Tapes.get_tape!(tape_id)
     |> Tapes.store_tape()
     |> case do
@@ -57,7 +82,7 @@ defmodule TrackerWeb.DashboardLive.Index do
     end
   end
 
-  def install_tape(%{"id" => tape_id}, socket) do
+  def process_event(socket, "install-tape", %{"id" => tape_id}) do
     Tapes.get_tape!(tape_id)
     |> Tapes.install_tape()
     |> case do
