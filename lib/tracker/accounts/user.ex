@@ -8,6 +8,7 @@ defmodule Tracker.Accounts.User do
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
     field :confirmed_at, :naive_datetime
+    field :badge_id, :string
 
     timestamps(type: :utc_datetime)
   end
@@ -128,6 +129,15 @@ defmodule Tracker.Accounts.User do
   def confirm_changeset(user) do
     now = NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
     change(user, confirmed_at: now)
+  end
+
+  @doc """
+  A user changeset for changing the badge id.
+  """
+  def badge_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:badge_id, :password])
+    |> validate_confirmation(:password, message: "does not match password")
   end
 
   @doc """

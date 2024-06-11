@@ -27,6 +27,22 @@ defmodule Tracker.Accounts do
   end
 
   @doc """
+  Gets a user by badge id.
+
+  ## Examples
+
+      iex> get_user_by_badge("12345")
+      %User{}
+
+      iex> get_user_by_badge("bad id")
+      nil
+
+  """
+  def get_user_by_badge(badge_id) when is_binary(badge_id) do
+    Repo.get_by(User, badge_id: badge_id)
+  end
+
+  @doc """
   Gets a user by email and password.
 
   ## Examples
@@ -213,6 +229,26 @@ defmodule Tracker.Accounts do
       {:ok, %{user: user}} -> {:ok, user}
       {:error, :user, changeset, _} -> {:error, changeset}
     end
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for changing the user's badge id.
+
+  ## Examples
+
+      iex> change_user_badge(user)
+      %Ecto.Changeset{data: %User{}}
+
+  """
+  def change_user_badge(user, attrs \\ %{}) do
+    User.badge_changeset(user, attrs)
+  end
+
+  def update_user_badge(user, password, attrs) do
+    user
+    |> User.badge_changeset(attrs)
+    |> User.validate_current_password(password)
+    |> Repo.update()
   end
 
   ## Session

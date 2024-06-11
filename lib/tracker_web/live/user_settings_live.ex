@@ -35,6 +35,28 @@ defmodule TrackerWeb.UserSettingsLive do
       </div>
       <div>
         <.simple_form
+          for={@badge_form}
+          id="badge_form"
+          phx-submit="update_badge"
+          phx-change="validate_badge"
+        >
+          <.input field={@badge_form[:badge_id]} type="text" label="Badge ID" required />
+          <.input
+            field={@badge_form[:current_password]}
+            name="current_password"
+            id="current_password_for_badge"
+            type="password"
+            label="Current password"
+            value={@badge_form_current_password}
+            required
+          />
+          <:actions>
+            <.button phx-disable-with="Changing...">Change Badge ID</.button>
+          </:actions>
+        </.simple_form>
+      </div>
+      <div>
+        <.simple_form
           for={@password_form}
           id="password_form"
           action={~p"/users/log_in?_action=password_updated"}
@@ -89,14 +111,17 @@ defmodule TrackerWeb.UserSettingsLive do
   def mount(_params, _session, socket) do
     user = socket.assigns.current_user
     email_changeset = Accounts.change_user_email(user)
+    badge_changeset = Accounts.change_user_badge(user)
     password_changeset = Accounts.change_user_password(user)
 
     socket =
       socket
       |> assign(:current_password, nil)
       |> assign(:email_form_current_password, nil)
+      |> assign(:badge_form_current_password, nil)
       |> assign(:current_email, user.email)
       |> assign(:email_form, to_form(email_changeset))
+      |> assign(:badge_form, to_form(badge_changeset))
       |> assign(:password_form, to_form(password_changeset))
       |> assign(:trigger_submit, false)
 
@@ -132,6 +157,32 @@ defmodule TrackerWeb.UserSettingsLive do
 
       {:error, changeset} ->
         {:noreply, assign(socket, :email_form, to_form(Map.put(changeset, :action, :insert)))}
+    end
+  end
+
+  def handle_event("validate_badge", params, socket) do
+    %{"current_password" => password, "user" => user_params} = params
+
+    badge_form =
+      socket.assigns.current_user
+      |> Accounts.change_user_badge(user_params)
+      |> Map.put(:action, :validate)
+      |> to_form()
+
+    {:noreply, assign(socket, badge_form: badge_form, badge_form_current_password: password)}
+  end
+
+  def handle_event("update_badge", params, socket) do
+    %{"current_password" => password, "user" => user_params} = params
+    user = socket.assigns.current_user
+
+    case Accounts.update_user_badge(user, password, user_params) do
+      {:ok, applied_user} ->
+        info = "Your badge id has been associated to your account."
+        {:noreply, socket |> put_flash(:info, info) |> assign(badge_form_current_password: nil)}
+
+      {:error, changeset} ->
+        {:noreply, assign(socket, :badge_form, to_form(Map.put(changeset, :action, :insert)))}
     end
   end
 
