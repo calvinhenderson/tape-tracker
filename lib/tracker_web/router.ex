@@ -18,22 +18,19 @@ defmodule TrackerWeb.Router do
   end
 
   scope "/", TrackerWeb do
-    pipe_through :browser
-
-    live "/", DashboardLive.Index, :index
-  end
-
-  scope "/", TrackerWeb do
     pipe_through [:browser]
 
-    live "/tapes", TapeLive.Index, :index
-    live "/tapes/:id", TapeLive.Show, :show
+    live_session :default, on_mount: [{TrackerWeb.UserAuth, :mount_current_user}] do
+      live "/", DashboardLive.Index, :index
+      live "/tapes", TapeLive.Index, :index
+      live "/tapes/:id", TapeLive.Show, :show
+    end
   end
 
   scope "/", TrackerWeb do
     pipe_through [:browser, :require_authenticated_user]
 
-    live_session :authenticated, on_mount: [:require_authenticated_user] do
+    live_session :authenticated, on_mount: [{TrackerWeb.UserAuth, :ensure_authenticated}] do
       live "/tapes/new", TapeLive.Index, :new
       live "/tapes/:id/edit", TapeLive.Index, :edit
       live "/tapes/:id/show/edit", TapeLive.Show, :edit

@@ -3,17 +3,17 @@ defmodule Tracker.Repo do
     otp_app: :tracker,
     adapter: Ecto.Adapters.Postgres
 
-  def after_connect(config) do
-    config
-    |> dbg()
-  end
+  @impl true
+  def prepare_query(_operation, query, opts) do
+    user_id =
+      Process.get(:current_user)
+      |> case do
+        %{id: id} -> id
+        _ -> nil
+      end
 
-  defp with_current_user(op, opts) do
-    %{id: user_id} = Process.get(:current_user)
+    query!("SELECT set_config('audit.user_id', $1, true);", [user_id])
 
-    transaction(fn ->
-      query("set session 'current_user' = '#{user_id}'")
-      apply(__MODULE__, op, opts)
-    end)
+    {query, opts}
   end
 end
