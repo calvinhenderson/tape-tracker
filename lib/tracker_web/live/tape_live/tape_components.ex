@@ -37,8 +37,8 @@ defmodule TrackerWeb.TapeLive.TapeComponents do
           <img
             src="/images/cassette.png"
             class={[
-              "w-80 group-hover:grayscale-0 transition-all duration-500",
-              not Tracker.Tapes.installed?(@tape) && "grayscale"
+              "w-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-500",
+              not Tracker.Tapes.installed?(@tape) && "grayscale dark:opacity-50"
             ]}
             alt="Casset Tape"
           />
@@ -92,14 +92,20 @@ defmodule TrackerWeb.TapeLive.TapeComponents do
       <%= for {id, event} <- @events do %>
         <li id={id} class="group">
           <hr class="group-first:hidden" />
-          <p
-            id={id <> "-timestamp"}
-            data-timestamp={event.inserted_at}
-            phx-hook="FormatTimestamp"
-            class="group-even:timeline-end timeline-start timeline-box min-w-max"
-          >
-            <%= event.inserted_at %>
-          </p>
+          <div class="group-even:timeline-end timeline-start timeline-box min-w-max">
+            <p id={id <> "-timestamp"} data-timestamp={event.inserted_at} phx-hook="FormatTimestamp">
+              <%= event.inserted_at %>
+            </p>
+            <p :if={is_map(event.user)}>
+              By
+              <b>
+                <%= case event.user.name do
+                  "" <> name -> name
+                  _ -> gettext("System")
+                end %>
+              </b>
+            </p>
+          </div>
           <.icon name="hero-information-circle" class="timeline-middle mb-8" />
           <.icon
             name="hero-arrow-long-up"

@@ -232,6 +232,38 @@ defmodule Tracker.Accounts do
   end
 
   @doc """
+  Returns an `%Ecto.Changeset{}` for changing the user's name.
+
+  ## Examples
+
+      iex> change_user_name(user)
+      %Ecto.Changeset{data: %User{}}
+
+  """
+  def change_user_name(user, attrs \\ %{}) do
+    User.name_changeset(user, attrs)
+  end
+
+  @doc """
+  Updates the user's name in the database.
+
+  ## Examples
+
+      iex> update_user_name(user, valid_password, valid_attrs)
+      {:ok, %User{}}
+
+      iex> update_user_name(user, maybe_invalid_password, maybe_invalid_attrs)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_user_name(user, password, attrs) do
+    user
+    |> User.name_changeset(attrs)
+    |> User.validate_current_password(password)
+    |> Repo.update()
+  end
+
+  @doc """
   Returns an `%Ecto.Changeset{}` for changing the user's badge id.
 
   ## Examples

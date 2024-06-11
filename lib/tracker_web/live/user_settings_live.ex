@@ -10,8 +10,32 @@ defmodule TrackerWeb.UserSettingsLive do
       <:subtitle>Manage your account email address and password settings</:subtitle>
     </.header>
 
-    <div class="space-y-12 divide-y">
+    <div class="mt-12 grid lg:grid-cols-2 gap-12 lg:gap-24 max-w-md lg:max-w-3xl mx-auto">
       <div>
+        <.header>Name</.header>
+        <.simple_form
+          for={@name_form}
+          id="name_form"
+          phx-submit="update_name"
+          phx-change="validate_name"
+        >
+          <.input field={@name_form[:name]} type="text" label="Name" required />
+          <.input
+            field={@name_form[:current_password]}
+            name="current_password"
+            id="current_password_for_name"
+            type="password"
+            label="Current password"
+            value={@name_form_current_password}
+            required
+          />
+          <:actions>
+            <.button phx-disable-with="Changing...">Change name</.button>
+          </:actions>
+        </.simple_form>
+      </div>
+      <div>
+        <.header>Email</.header>
         <.simple_form
           for={@email_form}
           id="email_form"
@@ -34,6 +58,7 @@ defmodule TrackerWeb.UserSettingsLive do
         </.simple_form>
       </div>
       <div>
+        <.header>Badge</.header>
         <.simple_form
           for={@badge_form}
           id="badge_form"
@@ -56,6 +81,7 @@ defmodule TrackerWeb.UserSettingsLive do
         </.simple_form>
       </div>
       <div>
+        <.header>Password</.header>
         <.simple_form
           for={@password_form}
           id="password_form"
@@ -110,6 +136,7 @@ defmodule TrackerWeb.UserSettingsLive do
 
   def mount(_params, _session, socket) do
     user = socket.assigns.current_user
+    name_changeset = Accounts.change_user_name(user)
     email_changeset = Accounts.change_user_email(user)
     badge_changeset = Accounts.change_user_badge(user)
     password_changeset = Accounts.change_user_password(user)
@@ -117,15 +144,43 @@ defmodule TrackerWeb.UserSettingsLive do
     socket =
       socket
       |> assign(:current_password, nil)
+      |> assign(:name_form_current_password, nil)
       |> assign(:email_form_current_password, nil)
       |> assign(:badge_form_current_password, nil)
       |> assign(:current_email, user.email)
+      |> assign(:name_form, to_form(name_changeset))
       |> assign(:email_form, to_form(email_changeset))
       |> assign(:badge_form, to_form(badge_changeset))
       |> assign(:password_form, to_form(password_changeset))
       |> assign(:trigger_submit, false)
 
     {:ok, socket}
+  end
+
+  def handle_event("validate_name", params, socket) do
+    %{"current_password" => password, "user" => user_params} = params
+
+    name_form =
+      socket.assigns.current_user
+      |> Accounts.change_user_name(user_params)
+      |> Map.put(:action, :validate)
+      |> to_form()
+
+    {:noreply, assign(socket, name_form: name_form, name_form_current_password: password)}
+  end
+
+  def handle_event("update_name", params, socket) do
+    %{"current_password" => password, "user" => user_params} = params
+    user = socket.assigns.current_user
+
+    case Accounts.update_user_name(user, password, user_params) do
+      {:ok, _applied_user} ->
+        info = "Your name has been updated."
+        {:noreply, socket |> put_flash(:info, info) |> assign(name_form_current_password: nil)}
+
+      {:error, changeset} ->
+        {:noreply, assign(socket, :name_form, to_form(Map.put(changeset, :action, :insert)))}
+    end
   end
 
   def handle_event("validate_email", params, socket) do
@@ -177,7 +232,7 @@ defmodule TrackerWeb.UserSettingsLive do
     user = socket.assigns.current_user
 
     case Accounts.update_user_badge(user, password, user_params) do
-      {:ok, applied_user} ->
+      {:ok, _applied_user} ->
         info = "Your badge id has been associated to your account."
         {:noreply, socket |> put_flash(:info, info) |> assign(badge_form_current_password: nil)}
 

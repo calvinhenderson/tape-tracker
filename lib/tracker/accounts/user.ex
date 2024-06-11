@@ -4,6 +4,7 @@ defmodule Tracker.Accounts.User do
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
   schema "users" do
+    field :name, :string
     field :email, :string
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
@@ -38,7 +39,8 @@ defmodule Tracker.Accounts.User do
   """
   def registration_changeset(user, attrs, opts \\ []) do
     user
-    |> cast(attrs, [:email, :password])
+    |> cast(attrs, [:name, :email, :password])
+    |> validate_required(:name)
     |> validate_email(opts)
     |> validate_password(opts)
   end
@@ -87,6 +89,32 @@ defmodule Tracker.Accounts.User do
     else
       changeset
     end
+  end
+
+  @doc """
+  A user changeset for changing the name.
+
+  It requires the name to change otherwise an error is added.
+  """
+  def name_changeset(user, attrs, opts \\ []) do
+    user
+    |> cast(attrs, [:name, :password])
+    |> validate_email(opts)
+    |> case do
+      %{changes: %{name: _}} = changeset -> changeset
+      %{} = changeset -> add_error(changeset, :email, "did not change")
+    end
+    |> validate_confirmation(:password, message: "does not match password")
+  end
+
+  @doc """
+  A user changeset for loading just the name and id.
+
+  It should only be used for read operations!
+  """
+  def profile_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:id, :name])
   end
 
   @doc """

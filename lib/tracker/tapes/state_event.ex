@@ -8,6 +8,7 @@ defmodule Tracker.Tapes.StateEvent do
   import Ecto.Changeset
   import Ecto.Query
   alias Tracker.Tapes.Tape
+  alias Tracker.Accounts.User
 
   @state_values Ecto.Enum.values(Tape, :state)
 
@@ -15,6 +16,7 @@ defmodule Tracker.Tapes.StateEvent do
   @foreign_key_type :binary_id
   schema "tapes_state_events" do
     belongs_to :tape, Tape
+    belongs_to :user, User
     field :old_state, Ecto.Enum, values: @state_values
     field :new_state, Ecto.Enum, values: @state_values
     timestamps(updated_at: false)
@@ -24,6 +26,7 @@ defmodule Tracker.Tapes.StateEvent do
     event
     |> cast(attrs, [:id, :tape_id, :old_state, :new_state, :inserted_at])
     |> cast_assoc(:tape, with: &Tape.event_changeset/2)
+    |> cast_assoc(:user, with: &User.profile_changeset/2)
     |> validate_inclusion(:new_state, @state_values)
     |> validate_inclusion(:old_state, @state_values)
     |> foreign_key_constraint(:tape_id)
@@ -40,8 +43,10 @@ defmodule Tracker.Tapes.StateEvent do
     from event in __MODULE__,
       join: t in Tape,
       on: event.tape_id == t.id,
-      preload: [:tape],
+      left_join: u in User,
+      on: event.user_id == u.id,
+      preload: [:tape, :user],
       order_by: [desc: :inserted_at],
-      select: event
+      select: %{event | user: %{id: u.id, name: u.name}}
   end
 end

@@ -152,6 +152,7 @@ defmodule Tracker.Tapes do
     tape_id
     |> list_state_events_query()
     |> Repo.all()
+    |> dbg()
   end
 
   @doc """

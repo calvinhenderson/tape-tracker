@@ -13,6 +13,8 @@ defmodule TrackerWeb.DashboardLive.Index do
   def mount(_params, _session, socket) do
     :ok = Tapes.subscribe_to_state()
 
+    Process.put(:current_user, socket.assigns.current_user)
+
     tapes = Tapes.list_tapes()
 
     installed_tapes =
@@ -40,10 +42,14 @@ defmodule TrackerWeb.DashboardLive.Index do
       %User{} = user ->
         Process.put(:current_user, user)
 
-        {:noreply,
-         socket
-         |> assign(:form, nil)
-         |> process_event(params["action"], params["params"] |> Jason.decode!())}
+        socket =
+          socket
+          |> assign(:form, nil)
+          |> process_event(params["action"], params["params"] |> Jason.decode!())
+
+        Process.put(:current_user, nil)
+
+        {:noreply, socket}
 
       nil ->
         {:noreply,

@@ -20,23 +20,26 @@ defmodule Tracker.Repo.Migrations.CreateTapesNotifier do
 
     execute """
             CREATE OR REPLACE FUNCTION audit_tapes_changed()
-              RETURNS trigger as $trigger$
-              DECLARE
-                user_id text;
-              BEGIN
-                user_id := current_setting('audit.user_id', true);
-                IF user_id = '' THEN
-                  user_id = NULL;
-                END IF;
+            RETURNS trigger as $trigger$
+            DECLARE
+              user_id uuid;
+              audit_user_id text;
+            BEGIN
+              audit_user_id := current_setting('audit.user_id', true);
+              IF audit_user_id = '' THEN
+                user_id := NULL;
+              ELSE
+                user_id := audit_user_id::uuid;
+              END IF;
 
-                IF (TG_OP = 'UPDATE') AND (OLD.state IS DISTINCT FROM NEW.state) THEN
-                  INSERT INTO tapes_state_events (id, user_id, tape_id, old_state, new_state, inserted_at)
-                    VALUES (gen_random_uuid(), user_id::uuid, NEW.id, OLD.state, NEW.state, NOW());
-                END IF;
+              IF (TG_OP = 'UPDATE') AND (OLD.state IS DISTINCT FROM NEW.state) THEN
+                INSERT INTO tapes_state_events (id, user_id, tape_id, old_state, new_state, inserted_at)
+                  VALUES (gen_random_uuid(), user_id, NEW.id, OLD.state, NEW.state, NOW());
+              END IF;
 
-                RETURN NEW;
-              END;
-              $trigger$ LANGUAGE plpgsql;
+              RETURN NEW;
+            END;
+            $trigger$ LANGUAGE plpgsql;
             """,
             "DROP FUNCTION audit_tapes_changed();"
 
@@ -68,10 +71,15 @@ defmodule Tracker.Repo.Migrations.CreateTapesNotifier do
               END CASE;
 
               WITH cte AS (
-                SELECT events.*, tapes AS tape
+                SELECT
+                  events.*,
+                  tapes AS tape,
+                  users AS user
                 FROM tapes_state_events events
-                LEFT JOIN users.name ON users.id = events.user_id;
                 JOIN tapes ON tapes.id = events.tape_id
+                LEFT JOIN (
+                  SELECT id, name FROM users
+                ) users ON users.id = events.user_id
                 WHERE events.id = rec.id
               ) SELECT row_to_json(cte) FROM cte INTO payload;
 

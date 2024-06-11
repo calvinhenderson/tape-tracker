@@ -93,7 +93,6 @@ defmodule TrackerWeb.UserAuth do
   def fetch_current_user(conn, _opts) do
     {user_token, conn} = ensure_user_token(conn)
     user = user_token && Accounts.get_user_by_session_token(user_token)
-    Process.put(:current_user, user)
     assign(conn, :current_user, user)
   end
 
@@ -178,9 +177,7 @@ defmodule TrackerWeb.UserAuth do
   defp mount_current_user(socket, session) do
     Phoenix.Component.assign_new(socket, :current_user, fn ->
       if user_token = session["user_token"] do
-        user = Accounts.get_user_by_session_token(user_token)
-        Process.put(:current_user, user)
-        user
+        Accounts.get_user_by_session_token(user_token)
       end
     end)
   end
