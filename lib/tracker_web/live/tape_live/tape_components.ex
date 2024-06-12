@@ -96,14 +96,14 @@ defmodule TrackerWeb.TapeLive.TapeComponents do
             <p id={id <> "-timestamp"} data-timestamp={event.inserted_at} phx-hook="FormatTimestamp">
               <%= event.inserted_at %>
             </p>
-            <p :if={is_map(event.user)}>
+            <p :if={is_binary(event.user_id)}>
               By
-              <b>
-                <%= case event.user.name do
-                  "" <> name -> name
-                  _ -> gettext("System")
-                end %>
+              <b class="tooltip tooltip-top" data-tip={event.user_id}>
+                <%= if is_nil(event.user.name), do: "No name", else: event.user.name %>
               </b>
+            </p>
+            <p :if={is_nil(event.user_id)}>
+              By <b>System</b>
             </p>
           </div>
           <.icon name="hero-information-circle" class="timeline-middle mb-8" />
