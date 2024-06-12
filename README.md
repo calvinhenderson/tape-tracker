@@ -1,4 +1,4 @@
-# Tracker
+# Tape Tracker
 
 A real-time web application designed to help you manage your physical backup tapes with ease.
 
