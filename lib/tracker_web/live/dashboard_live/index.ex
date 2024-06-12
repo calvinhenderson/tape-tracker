@@ -25,6 +25,7 @@ defmodule TrackerWeb.DashboardLive.Index do
 
     {:ok,
      socket
+     |> assign(:show_auth_modal, false)
      |> stream(:installed_tapes, installed_tapes, at: -1)
      |> stream(:stored_tapes, stored_tapes, at: 0)
      |> stream(:events, events, at: 0, limit: @events_limit)
@@ -49,7 +50,7 @@ defmodule TrackerWeb.DashboardLive.Index do
 
         Process.put(:current_user, nil)
 
-        {:noreply, socket}
+        {:noreply, socket |> assign(:show_auth_modal, false)}
 
       nil ->
         {:noreply,
@@ -58,7 +59,8 @@ defmodule TrackerWeb.DashboardLive.Index do
            :error,
            "Badge number not found. Did you associate it in your account settings?"
          )
-         |> assign_form(Map.put(params, "badge_id", ""))}
+         |> assign(:form, nil)
+         |> assign(:show_auth_modal, false)}
     end
   end
 
@@ -68,6 +70,7 @@ defmodule TrackerWeb.DashboardLive.Index do
       if is_nil(socket.assigns.current_user) do
         socket
         |> assign_form(%{"action" => event, "params" => params |> Jason.encode!()})
+        |> assign(:show_auth_modal, true)
       else
         socket
         |> process_event(event, params)
